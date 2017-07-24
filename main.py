@@ -26,4 +26,4 @@ def question3():
 def question4():
     print(mp.bayesianSearchQ4())
 
-question4()
+question3()

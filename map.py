@@ -1,5 +1,6 @@
 import random
 import matplotlib.pyplot as plt
+import math
 
 FLAT = 0
 HILL = 1
@@ -20,37 +21,10 @@ Prob = { # Prob of not there
     MAZE: 0.9,
 }
 
-def modastar(a, b): # a modified version of A* used to find minimum cost to go from one cell to another with eucladian heuristic
+def manhattan(a, b): # returns manhattan ditance between two cells
     di = abs(b.i - a.i)  # determines the i direction we are moving in since there are no obstacles
     dj = abs(b.j - a.j)  # same for j
-
-    #normalize step size
-    if di != 0:
-        di /= (b.i - a.i)
-
-    if dj != 0:
-        dj /= (b.j - a.j)
-
-    ci = a.i
-    cj = a.j
-
-    cost = 0
-
-    while not (ci == b.i and cj == b.j):
-        cost += 1
-        dx = 1323124
-        dy = 1323124
-        if di != 0:
-            dx = (b.i - (ci + di)) **2 + (b.j - (cj)) **2 # no need to take the square root
-        if dj != 0:
-            dy = (b.i - (ci)) **2 + (b.j - (cj + dj)) **2
-        
-        if dy < dx:
-            cj += dj
-        else:
-            ci += di
-    
-    return cost
+    return di + dj
 
 class Cell:
     def __init__(self, i, j, type, prob):
@@ -69,7 +43,7 @@ class Cell:
     def cost(self, to): # calculate cost to get here, for question 4
         if to.i == self.i and to.j == self.j:
             return 1283712047 # so it wouldn't return itself
-        return (modastar(self, to)) * (1.0 - self.probFind())
+        return (manhattan(self, to) + 1) * (1.0 / self.probFind())
 
 
 class Map:
@@ -100,7 +74,7 @@ class Map:
         plt.show()
 
     def displayHeatMap(self):
-        heatmap = [[self.belief[j][i].prob for i in range(self.size)] for j in range(self.size)]
+        heatmap = [[self.belief[j][i].probFind() for i in range(self.size)] for j in range(self.size)]
         #print(len(heatmap))
         plt.imshow(heatmap, cmap='hot', interpolation='nearest')
         plt.show()
@@ -116,12 +90,12 @@ class Map:
     def maxProb(self): # Find biggest probability in the map
         return max([max(sub_belief, key=lambda x: x.prob) for sub_belief in self.belief], key=lambda x: x.prob).indices()
 
-    def maxFind(self):
+    def maxFind(self): #
         return max([max(sub_belief, key=lambda x: x.probFind()) for sub_belief in self.belief], key=lambda x: x.probFind()).indices()
 
     def minCost(self, current):
         m = min([min(sub_belief, key=lambda x: x.cost(self.belief[current[0]][current[1]])) for sub_belief in self.belief], key=lambda x: x.cost(self.belief[current[0]][current[1]]))
-        return [m.indices(), m.cost(self.belief[current[0]][current[1]])]
+        return [m.indices(), m.cost(self.belief[current[0]][current[1]]), manhattan(m, self.belief[current[0]][current[1]])]
     
     def updateProb(self, x, y):
         q = 1 - Prob[self.data[x][y]]
@@ -158,19 +132,18 @@ class Map:
     
     def bayesianSearchQ4(self):
         searchCount = 0
+        visits = 0
         current = [self.size // 2, self.size // 2] # start in the middle of the map, // is integer division in Python > 3.0
-        print(self.target)
         while(True):
-            currentCost = 1.0 - self.belief[current[0]][current[1]].probFind()
+            currentCost = 1.0 / self.belief[current[0]][current[1]].probFind()
             min = self.minCost(current)
-            print([min, currentCost])
             if currentCost <= min[1]: # check if checking the current cell is lower cost than moving
-                searchCount += currentCost
-               
+                searchCount += 1
+                visits += 1            
                 if not self.hasTarget(*current): # if not target update probability
                     self.updateProb(*current)
                 else:
-                    return searchCount
+                    return [searchCount, visits]
             else: # move
                 current = min[0]
-                searchCount += min[1]
+                searchCount += min[2]
