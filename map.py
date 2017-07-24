@@ -20,6 +20,38 @@ Prob = { # Prob of not there
     MAZE: 0.9,
 }
 
+def modastar(a, b): # a modified version of A* used to find minimum cost to go from one cell to another with eucladian heuristic
+    di = abs(b.i - a.i)  # determines the i direction we are moving in since there are no obstacles
+    dj = abs(b.j - a.j)  # same for j
+
+    #normalize step size
+    if di != 0:
+        di /= (b.i - a.i)
+
+    if dj != 0:
+        dj /= (b.j - a.j)
+
+    ci = a.i
+    cj = a.j
+
+    cost = 0
+
+    while not (ci == b.i and cj == b.j):
+        cost += 1
+        dx = 1323124
+        dy = 1323124
+        if di != 0:
+            dx = (b.i - (ci + di)) **2 + (b.j - (cj)) **2 # no need to take the square root
+        if dj != 0:
+            dy = (b.i - (ci)) **2 + (b.j - (cj + dj)) **2
+        
+        if dy < dx:
+            cj += dj
+        else:
+            ci += di
+    
+    return cost
+
 class Cell:
     def __init__(self, i, j, type, prob):
         self.visits = 0
@@ -33,6 +65,10 @@ class Cell:
 
     def probFind(self):
         return self.prob * (1.0 - Prob[self.type])
+
+    def cost(self, to): # calculate cost to get here, for question 4
+        return modastar(self, to) * (1.0 - self.prob)
+
 
 class Map:
     def __init__(self, size):
@@ -80,6 +116,10 @@ class Map:
 
     def maxFind(self):
         return max([max(sub_belief, key=lambda x: x.probFind()) for sub_belief in self.belief], key=lambda x: x.prob).indices()
+
+    def minCost(self, current):
+        m = min([min(sub_belief, key=lambda x: x.cost(self.belief[current[0]][current[1]])) for sub_belief in self.belief], key=lambda x: x.prob)
+        return [m.indices(), m.cost(self.belief[current[0]][current[1]])]
     
     def updateProb(self, x, y):
         q = 1 - Prob[self.data[x][y]]
@@ -113,3 +153,19 @@ class Map:
                 current = self.maxFind()
             else:
                 return searchCount
+    
+    def bayesianSearchQ4(self):
+        searchCount = 0
+        current = [self.size // 2, self.size // 2] # start in the middle of the map, // is integer division in Python > 3.0
+        while(True):
+            currentCost = 1.0 - self.belief[current[0]][current[1]].prob
+            min = self.minCost(current)
+            if currentCost < min[1]: # check if checking the current cell is lower cost than moving
+                searchCount += currentCost
+                if not self.hasTarget(*current): # if not target update probability
+                    self.updateProb(*current)
+                else:
+                    return searchCount
+            else: # move
+                current = min[0]
+                searchCount += min[1]
