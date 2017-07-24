@@ -67,7 +67,9 @@ class Cell:
         return self.prob * (1.0 - Prob[self.type])
 
     def cost(self, to): # calculate cost to get here, for question 4
-        return modastar(self, to) * (1.0 - self.prob)
+        if to.i == self.i and to.j == self.j:
+            return 1283712047 # so it wouldn't return itself
+        return (modastar(self, to)) * (1.0 - self.probFind())
 
 
 class Map:
@@ -115,10 +117,10 @@ class Map:
         return max([max(sub_belief, key=lambda x: x.prob) for sub_belief in self.belief], key=lambda x: x.prob).indices()
 
     def maxFind(self):
-        return max([max(sub_belief, key=lambda x: x.probFind()) for sub_belief in self.belief], key=lambda x: x.prob).indices()
+        return max([max(sub_belief, key=lambda x: x.probFind()) for sub_belief in self.belief], key=lambda x: x.probFind()).indices()
 
     def minCost(self, current):
-        m = min([min(sub_belief, key=lambda x: x.cost(self.belief[current[0]][current[1]])) for sub_belief in self.belief], key=lambda x: x.prob)
+        m = min([min(sub_belief, key=lambda x: x.cost(self.belief[current[0]][current[1]])) for sub_belief in self.belief], key=lambda x: x.cost(self.belief[current[0]][current[1]]))
         return [m.indices(), m.cost(self.belief[current[0]][current[1]])]
     
     def updateProb(self, x, y):
@@ -157,11 +159,14 @@ class Map:
     def bayesianSearchQ4(self):
         searchCount = 0
         current = [self.size // 2, self.size // 2] # start in the middle of the map, // is integer division in Python > 3.0
+        print(self.target)
         while(True):
-            currentCost = 1.0 - self.belief[current[0]][current[1]].prob
+            currentCost = 1.0 - self.belief[current[0]][current[1]].probFind()
             min = self.minCost(current)
-            if currentCost < min[1]: # check if checking the current cell is lower cost than moving
+            print([min, currentCost])
+            if currentCost <= min[1]: # check if checking the current cell is lower cost than moving
                 searchCount += currentCost
+               
                 if not self.hasTarget(*current): # if not target update probability
                     self.updateProb(*current)
                 else:
