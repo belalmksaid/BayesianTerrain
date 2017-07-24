@@ -74,7 +74,7 @@ class Map:
         plt.show()
 
     def displayHeatMap(self):
-        heatmap = [[self.belief[j][i].probFind() for i in range(self.size)] for j in range(self.size)]
+        heatmap = [[self.belief[j][i].visits for i in range(self.size)] for j in range(self.size)]
         #print(len(heatmap))
         plt.imshow(heatmap, cmap='hot', interpolation='nearest')
         plt.show()
@@ -139,7 +139,8 @@ class Map:
             min = self.minCost(current)
             if currentCost <= min[1]: # check if checking the current cell is lower cost than moving
                 searchCount += 1
-                visits += 1            
+                visits += 1
+                self.belief[min[0][0]][min[0][1]].visits += 1            
                 if not self.hasTarget(*current): # if not target update probability
                     self.updateProb(*current)
                 else:
