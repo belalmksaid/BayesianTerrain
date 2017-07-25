@@ -20,6 +20,7 @@ Prob = { # Prob of not there
     FOREST: 0.6,
     MAZE: 0.9,
 }
+CONSTANT = 1
 
 def manhattan(a, b): # returns manhattan ditance between two cells
     di = abs(b.i - a.i)  # determines the i direction we are moving in since there are no obstacles
@@ -43,7 +44,7 @@ class Cell:
     def cost(self, to): # calculate cost to get here, for question 4
         if to.i == self.i and to.j == self.j:
             return 1283712047 # so it wouldn't return itself
-        return (manhattan(self, to) + 1) * (1.0 / self.probFind())
+        return (manhattan(self, to) + 1) * (1.0 / (self.probFind() * CONSTANT))
 
 
 class Map:
@@ -76,7 +77,10 @@ class Map:
     def displayHeatMap(self):
         heatmap = [[self.belief[j][i].visits for i in range(self.size)] for j in range(self.size)]
         #print(len(heatmap))
-        plt.imshow(heatmap, cmap='hot', interpolation='nearest')
+        plt.pcolor(heatmap, cmap='OrRd', vmin=0, vmax=max([max(visits) for visits in heatmap]))
+        plt.title('Heat Map of Most Visited Cells')
+        # set the limits of the plot to the limits of the data
+        plt.colorbar()
         plt.show()
 
     def hasTarget(self, i, j):
@@ -109,9 +113,10 @@ class Map:
 
     def bayesianSearchRule1(self):
         searchCount = 0
-        current = self.maxProb() # Get index of the highest probability
+        current = self.maxProb() # Get index of the highest probability   
         while(True):
             searchCount += 1
+            self.belief[current[0]][current[1]].visits += 1     
             if not self.hasTarget(*current):
                 self.updateProb(*current)
                 current = self.maxProb()
@@ -124,6 +129,7 @@ class Map:
         current = self.maxFind() # Get index of the highest probability
         while(True):
             searchCount += 1
+            self.belief[current[0]][current[1]].visits += 1       
             if not self.hasTarget(*current):
                 self.updateProb(*current)
                 current = self.maxFind()
@@ -133,15 +139,16 @@ class Map:
     def bayesianSearchQ4(self):
         searchCount = 0
         visits = 0
-        current = [self.size // 2, self.size // 2] # start in the middle of the map, // is integer division in Python > 3.0
+        #current = [self.size // 2, self.size // 2] # start in the middle of the map, // is integer division in Python > 3.0
+        current = [random.randint(0, self.size - 1), random.randint(0, self.size - 1)] # start at a random spot
         while(True):
             currentCost = 1.0 / self.belief[current[0]][current[1]].probFind()
             min = self.minCost(current)
             if currentCost <= min[1]: # check if checking the current cell is lower cost than moving
                 searchCount += 1
                 visits += 1
-                self.belief[min[0][0]][min[0][1]].visits += 1            
-                if not self.hasTarget(*current): # if not target update probability
+                self.belief[min[0][0]][min[0][1]].visits += 1 # incerement visisted cell, used for heat maps          
+                if not self.hasTarget(*current): # if not target, update probabilities and beliefs
                     self.updateProb(*current)
                 else:
                     return [searchCount, visits]
