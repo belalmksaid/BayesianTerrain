@@ -91,13 +91,13 @@ class Map:
         else:
             return False
 
-    def maxProb(self): # Find biggest probability in the map
+    def maxProb(self): # Find the cell with highest probability of having target in the map
         return max([max(sub_belief, key=lambda x: x.prob) for sub_belief in self.belief], key=lambda x: x.prob).indices()
 
-    def maxFind(self): #
+    def maxFind(self): # Find the cell with high probably of finding target there
         return max([max(sub_belief, key=lambda x: x.probFind()) for sub_belief in self.belief], key=lambda x: x.probFind()).indices()
 
-    def minCost(self, current):
+    def minCost(self, current): # Find cell with the lowest possible cost using D/p formula
         m = min([min(sub_belief, key=lambda x: x.cost(self.belief[current[0]][current[1]])) for sub_belief in self.belief], key=lambda x: x.cost(self.belief[current[0]][current[1]]))
         return [m.indices(), m.cost(self.belief[current[0]][current[1]]), manhattan(m, self.belief[current[0]][current[1]])]
     
@@ -112,46 +112,54 @@ class Map:
                     self.belief[i][j].prob = (self.belief[i][j].prob / (1.0 - p * q))
 
     def bayesianSearchRule1(self):
-        searchCount = 0
+        actionCount = 0
+        visits = 0
         current = self.maxProb() # Get index of the highest probability   
         while(True):
-            searchCount += 1
+            visits += 1
+            actionCount += 1
             self.belief[current[0]][current[1]].visits += 1     
             if not self.hasTarget(*current):
                 self.updateProb(*current)
-                current = self.maxProb()
+                newcell = self.maxFind()
+                actionCount += manhattan(self.belief[current[0]][current[1]], self.belief[newcell[0]][newcell[1]])
+                current = newcell
             else:
-                return searchCount
+                return [actionCount, visits]
 
 
     def bayesianSearchRule2(self):
-        searchCount = 0
+        actionCount = 0 #For question 4
+        visits = 0
         current = self.maxFind() # Get index of the highest probability
         while(True):
-            searchCount += 1
+            visits += 1
+            actionCount += 1
             self.belief[current[0]][current[1]].visits += 1       
             if not self.hasTarget(*current):
                 self.updateProb(*current)
-                current = self.maxFind()
+                newcell = self.maxFind()
+                actionCount += manhattan(self.belief[current[0]][current[1]], self.belief[newcell[0]][newcell[1]])
+                current = newcell
             else:
-                return searchCount
+                return [actionCount, visits]
     
+
     def bayesianSearchQ4(self):
-        searchCount = 0
+        actionCount= 0
         visits = 0
-        #current = [self.size // 2, self.size // 2] # start in the middle of the map, // is integer division in Python > 3.0
         current = [random.randint(0, self.size - 1), random.randint(0, self.size - 1)] # start at a random spot
         while(True):
             currentCost = 1.0 / self.belief[current[0]][current[1]].probFind()
             min = self.minCost(current)
             if currentCost <= min[1]: # check if checking the current cell is lower cost than moving
-                searchCount += 1
+                actionCount += 1
                 visits += 1
                 self.belief[min[0][0]][min[0][1]].visits += 1 # incerement visisted cell, used for heat maps          
                 if not self.hasTarget(*current): # if not target, update probabilities and beliefs
                     self.updateProb(*current)
                 else:
-                    return [searchCount, visits]
+                    return [actionCount, visits]
             else: # move
                 current = min[0]
-                searchCount += min[2]
+                actionCount+= min[2]

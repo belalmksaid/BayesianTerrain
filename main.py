@@ -13,9 +13,9 @@ def question3():
         mp.resetMap()
         mp.resetBelief()
         mp.resetTarget()
-        t1 = mp.bayesianSearchRule1()
+        t1 = mp.bayesianSearchRule1()[1]
         mp.resetBelief()
-        t2 = mp.bayesianSearchRule2()
+        t2 = mp.bayesianSearchRule2()[1]
         r1iterations.append(t1)
         r2iterations.append(t2)
         print(str(i) + ': Number of iterations: ' + str(t1) + ', ' + str(t2))
@@ -28,19 +28,19 @@ def question4():
     print(mp.bayesianSearchQ4())
 
 def question4p2():
-    mp = map.Map(20)
+    mp = map.Map(25)
     r1iterations = []
     r2iterations = []
     r3iterations = []
     r4iterations = []
 
-    for i in range(300):
+    for i in range(200):
         mp.resetMap()
         mp.resetBelief()
         mp.resetTarget()
-        t1 = mp.bayesianSearchRule1()
+        t1 = mp.bayesianSearchRule1()[0]
         mp.resetBelief()
-        t2 = mp.bayesianSearchRule2()
+        t2 = mp.bayesianSearchRule2()[0]
         mp.resetBelief()
         t3 = mp.bayesianSearchQ4()
         r1iterations.append(t1)
