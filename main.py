@@ -34,7 +34,7 @@ def question4p2():
     r3iterations = []
     r4iterations = []
 
-    for i in range(200):
+    for i in range(1000):
         mp.resetMap()
         mp.resetBelief()
         mp.resetTarget()
