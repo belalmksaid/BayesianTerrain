@@ -101,7 +101,7 @@ class Map:
         m = min([min(sub_belief, key=lambda x: x.cost(self.belief[current[0]][current[1]])) for sub_belief in self.belief], key=lambda x: x.cost(self.belief[current[0]][current[1]]))
         return [m.indices(), m.cost(self.belief[current[0]][current[1]]), manhattan(m, self.belief[current[0]][current[1]])]
     
-    def updateProb(self, x, y):
+    def updateProb(self, x, y): # update all probabilities
         q = 1 - Prob[self.data[x][y]]
         p = self.belief[x][y].prob
         self.belief[x][y].prob = p * (1.0 - q) / (1.0 - p * q)
@@ -112,7 +112,7 @@ class Map:
                     self.belief[i][j].prob = (self.belief[i][j].prob / (1.0 - p * q))
 
     def bayesianSearchRule1(self):
-        actionCount = 0
+        actionCount = 0 #For question 4
         visits = 0
         current = self.maxProb() # Get index of the highest probability   
         while(True):
@@ -150,7 +150,7 @@ class Map:
         visits = 0
         current = [random.randint(0, self.size - 1), random.randint(0, self.size - 1)] # start at a random spot
         while(True):
-            currentCost = 1.0 / self.belief[current[0]][current[1]].probFind()
+            currentCost = 1.0 / self.belief[current[0]][current[1]].probFind() # cost of looking at the inspecting the current cell
             min = self.minCost(current)
             if currentCost <= min[1]: # check if checking the current cell is lower cost than moving
                 actionCount += 1
